@@ -1,0 +1,62 @@
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+
+HikariConfig config = new HikariConfig();
+config.setJdbcUrl("jdbc:oracle:thin:@//localhost:1521/orcl");
+config.setUsername("your_username");
+config.setPassword("your_password");
+HikariDataSource dataSource = new HikariDataSource(config);
+try (Connection connection = dataSource.getConnection()) {
+    String sql = "SELECT * FROM employees WHERE department_id = 10";
+    try (Statement statement = connection.createStatement();
+         ResultSet resultSet = statement.executeQuery(sql)) {
+        while (resultSet.next()) {
+            String name = resultSet.getString("first_name") + " " + resultSet.getString("last_name");
+            String job = resultSet.getString("job_title");
+            System.out.println(name + " (" + job + ")");
+        }
+    }
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+dataSource.close();
+
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+public class OracleConnectionPoolExample {
+
+    public static void main(String[] args) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:oracle:thin:@//localhost:1521/orcl");
+        config.setUsername("your_username");
+        config.setPassword("your_password");
+        try (HikariDataSource dataSource = new HikariDataSource(config)) {
+            try (Connection connection = dataSource.getConnection()) {
+                String sql = "SELECT * FROM employees WHERE department_id = 10";
+                try (Statement statement = connection.createStatement();
+                     ResultSet resultSet = statement.executeQuery(sql)) {
+                    while (resultSet.next()) {
+                        String name = resultSet.getString("first_name") + " " + resultSet.getString("last_name");
+                        String job = resultSet.getString("job_title");
+                        System.out.println(name + " (" + job + ")");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
