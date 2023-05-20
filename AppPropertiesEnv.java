@@ -1,3 +1,9 @@
+In this example, the active environment is obtained from the system property "myapp.environment". 
+    You can set this property when running the application, for example, using the -D option: java -Dmyapp.environment=dev MainClass.
+    Alternatively, you can use an environment variable (System.getenv) instead of a system property.
+
+
+
 import java.io.InputStream;
 import java.util.Properties;
 
