@@ -1,3 +1,16 @@
+schema
+<fieldType name="compressed_string" class="solr.TextField">
+  <analyzer>
+    <tokenizer class="solr.KeywordTokenizerFactory"/>
+  </analyzer>
+</fieldType>
+
+<field name="compressed_content_field" type="compressed_binary" indexed="false" stored="true" compressed="true"/>
+
+
+
+
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
