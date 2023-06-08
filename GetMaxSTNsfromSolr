@@ -1,0 +1,41 @@
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.StatsResult;
+
+public class SolrMaxValueExample {
+
+    public static void main(String[] args) throws Exception {
+        // Solr server URL
+        String solrUrl = "http://localhost:8983/solr";
+        // Solr core name
+        String coreName = "your_core_name";
+        // Field for which you want to find the maximum value
+        String fieldName = "your_field_name";
+
+        // Create a Solr client
+        SolrClient solrClient = new HttpSolrClient.Builder(solrUrl).build();
+
+        // Create a Solr query
+        SolrQuery query = new SolrQuery("*:*");
+        // Add the StatsComponent to the query
+        query.set("stats", "true");
+        // Specify the field for which you want to calculate the statistics
+        query.set("stats.field", fieldName);
+        // Calculate the maximum value
+        query.set("stats.facet", fieldName);
+
+        // Execute the query
+        QueryResponse response = solrClient.query(coreName, query);
+
+        // Get the maximum value from the response
+        StatsResult statsResult = response.getStatsResult().getStatsQuery().get(fieldName);
+        double maxValue = statsResult.getMax();
+
+        System.out.println("Maximum value of " + fieldName + ": " + maxValue);
+
+        // Close the Solr client
+        solrClient.close();
+    }
+}
