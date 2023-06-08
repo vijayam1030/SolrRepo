@@ -13,6 +13,8 @@ public class SolrMaxValueExample {
         String coreName = "your_core_name";
         // Field for which you want to find the maximum value
         String fieldName = "your_field_name";
+        // Query filter
+        String filterQuery = "your_filter_query";
 
         // Create a Solr client
         SolrClient solrClient = new HttpSolrClient.Builder(solrUrl).build();
@@ -25,6 +27,8 @@ public class SolrMaxValueExample {
         query.set("stats.field", fieldName);
         // Calculate the maximum value
         query.set("stats.facet", fieldName);
+        // Add the WHERE clause as a filter query
+        query.setFilterQueries(filterQuery);
 
         // Execute the query
         QueryResponse response = solrClient.query(coreName, query);
@@ -33,7 +37,7 @@ public class SolrMaxValueExample {
         StatsResult statsResult = response.getStatsResult().getStatsQuery().get(fieldName);
         double maxValue = statsResult.getMax();
 
-        System.out.println("Maximum value of " + fieldName + ": " + maxValue);
+        System.out.println("Maximum value of " + fieldName + " with filter query '" + filterQuery + "': " + maxValue);
 
         // Close the Solr client
         solrClient.close();
