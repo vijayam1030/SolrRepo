@@ -1,42 +1,49 @@
-# Import the required libraries
-from pyspark.sql import SparkSession
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
+import java.util.Properties;
 
-# Create a SparkSession
-spark = SparkSession.builder.appName("OracleConnection").getOrCreate()
+public class OracleSparkConnection {
+    public static void main(String[] args) {
+        // Create a SparkSession
+        SparkSession spark = SparkSession.builder()
+                .appName("OracleConnection")
+                .getOrCreate();
 
-# Configure the Oracle JDBC connection properties
-url = "jdbc:oracle:thin:@//hostname:port/service_name"
-properties = {
-    "user": "your_username",
-    "password": "your_password",
-    "driver": "oracle.jdbc.driver.OracleDriver"
+        // Configure the Oracle JDBC connection properties
+        String url = "jdbc:oracle:thin:@//hostname:port/service_name";
+        Properties properties = new Properties();
+        properties.setProperty("user", "your_username");
+        properties.setProperty("password", "your_password");
+        properties.setProperty("driver", "oracle.jdbc.driver.OracleDriver");
+
+        // Define your SQL query with placeholders for the prepared statement
+        String query = "SELECT * FROM your_table WHERE column = ?";
+
+        // Provide the parameter value for the prepared statement
+        String parameterValue = "parameter_value";
+
+        // Create a DataFrame by executing the prepared statement
+        Dataset<Row> df = spark.read()
+                .format("jdbc")
+                .option("url", url)
+                .option("query", query)
+                .option("user", properties.getProperty("user"))
+                .option("password", properties.getProperty("password"))
+                .option("driver", properties.getProperty("driver"))
+                .option("oracle.jdbc.mapDateToTimestamp", "false")
+                .option("oracle.jdbc.useFetchSizeWithLongColumn", "true")
+                .option("oracle.jdbc.defaultRowPrefetch", "5000")
+                .option("fetchsize", "10000")
+                .option("partitionColumn", "column")
+                .option("lowerBound", "lower_bound_value")
+                .option("upperBound", "upper_bound_value")
+                .option("numPartitions", "number_of_partitions")
+                .option("partitionColumn", "column")
+                .option("dbtable", "your_table")
+                .load();
+
+        // Display the DataFrame
+        df.show();
+    }
 }
-
-# Define your SQL query with placeholders for the prepared statement
-query = "SELECT * FROM your_table WHERE column = ?"
-
-# Provide the parameter values for the prepared statement
-parameters = ["parameter_value"]
-
-# Create a DataFrame by executing the prepared statement
-df = spark.read \
-    .format("jdbc") \
-    .option("url", url) \
-    .option("query", query) \
-    .option("user", properties["user"]) \
-    .option("password", properties["password"]) \
-    .option("driver", properties["driver"]) \
-    .option("oracle.jdbc.mapDateToTimestamp", "false") \
-    .option("oracle.jdbc.useFetchSizeWithLongColumn", "true") \
-    .option("oracle.jdbc.defaultRowPrefetch", "5000") \
-    .option("fetchsize", "10000") \
-    .option("partitionColumn", "column") \
-    .option("lowerBound", "lower_bound_value") \
-    .option("upperBound", "upper_bound_value") \
-    .option("numPartitions", "number_of_partitions") \
-    .option("partitionColumn", "column") \
-    .option("dbtable", "your_table") \
-    .load()
-
-# Display the DataFrame
-df.show()
