@@ -1,0 +1,26 @@
+# Use a base image with Java and Maven installed
+FROM maven:3.8.4-openjdk-11-slim AS build
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy the Maven project files
+COPY pom.xml .
+
+# Download the project dependencies
+RUN mvn dependency:go-offline
+
+# Copy the source code
+COPY src ./src
+
+# Build the Maven project
+RUN mvn package -DskipTests
+
+# Use a base image with OpenJDK and Spark installed
+FROM apache/spark:3.2.0
+
+# Copy the JAR file from the build stage
+COPY --from=build /usr/src/app/target/your-project.jar /app/your-project.jar
+
+# Set the entry point to run the Spark application
+ENTRYPOINT spark-submit --class com.example.YourSparkAppClass --master local[*] /app/your-project.jar
