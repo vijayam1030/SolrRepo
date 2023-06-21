@@ -16,11 +16,23 @@ COPY src ./src
 # Build the Maven project
 RUN mvn package -DskipTests
 
-# Use a base image with OpenJDK and Spark installed
-FROM apache/spark:3.2.0
+# Download and install Spark
+FROM openjdk:11-jdk
+
+ENV SPARK_VERSION=3.2.0
+ENV HADOOP_VERSION=3.2
+
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -O https://downloads.apache.org/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz && \
+    tar -xvzf spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz && \
+    mv spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION /spark && \
+    rm spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz
+
+ENV SPARK_HOME=/spark
 
 # Copy the JAR file from the build stage
 COPY --from=build /usr/src/app/target/your-project.jar /app/your-project.jar
 
 # Set the entry point to run the Spark application
-ENTRYPOINT spark-submit --class com.example.YourSparkAppClass --master local[*] /app/your-project.jar
+ENTRYPOINT $SPARK_HOME/bin/spark-submit --class com.example.YourSparkAppClass --master local[*] /app/your-project.jar
