@@ -1,0 +1,35 @@
+# Use an OpenJDK image as the base image
+FROM maven:3.8.3-openjdk-8 AS build
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the pom.xml file to the container
+COPY pom.xml .
+
+# Download and cache Maven dependencies
+RUN mvn dependency:go-offline
+
+# Copy the source code to the container
+COPY src/ src/
+
+# Build the Java code
+RUN mvn package
+
+# Use an OpenJDK image as the base image for the final image
+FROM openjdk:8-jdk
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the compiled JAR from the build stage
+COPY --from=build /app/target/my-spark-project.jar .
+
+# Download and install Spark
+RUN wget https://downloads.apache.org/spark/spark-3.2.0/spark-3.2.0-bin-hadoop3.2.tgz && \
+    tar -xzf spark-3.2.0-bin-hadoop3.2.tgz && \
+    rm spark-3.2.0-bin-hadoop3.2.tgz && \
+    mv spark-3.2.0-bin-hadoop3.2 spark
+
+# Set the entrypoint command when the container starts
+CMD ["java", "-cp", "spark/jars/*:my-spark-project.jar", "Main"]
