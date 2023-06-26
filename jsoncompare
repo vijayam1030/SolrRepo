@@ -1,0 +1,55 @@
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+public class JsonComparator {
+    public static void main(String[] args) {
+        String json1 = "{\"name\": \"John\", \"age\": 30}";
+        String json2 = "{\"name\": \"John\", \"age\": 35}";
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode tree1 = objectMapper.readTree(json1);
+            JsonNode tree2 = objectMapper.readTree(json2);
+            JsonNode diff = getJsonDiff(tree1, tree2);
+
+            System.out.println(diff.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static JsonNode getJsonDiff(JsonNode tree1, JsonNode tree2) {
+        if (tree1.equals(tree2)) {
+            return null; // No differences
+        }
+
+        if (tree1.isObject() && tree2.isObject()) {
+            ObjectNode diff = new ObjectMapper().createObjectNode();
+
+            tree1.fields().forEachRemaining(entry -> {
+                String fieldName = entry.getKey();
+                JsonNode value1 = entry.getValue();
+                JsonNode value2 = tree2.get(fieldName);
+
+                if (value2 == null || !value2.equals(value1)) {
+                    diff.set(fieldName, getJsonDiff(value1, value2));
+                }
+            });
+
+            tree2.fields().forEachRemaining(entry -> {
+                String fieldName = entry.getKey();
+                JsonNode value2 = entry.getValue();
+                JsonNode value1 = tree1.get(fieldName);
+
+                if (value1 == null) {
+                    diff.set(fieldName, value2);
+                }
+            });
+
+            return diff;
+        }
+
+        return tree2; // Difference detected
+    }
+}
