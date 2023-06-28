@@ -1,0 +1,34 @@
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CSVReader {
+    public static void main(String[] args) {
+        String csvFile = "data.csv";
+
+        List<String[]> data = new ArrayList<>();
+
+        try (InputStream inputStream = CSVReader.class.getClassLoader().getResourceAsStream(csvFile);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] values = line.split(",");
+                data.add(values);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Use the data list as needed
+        for (String[] values : data) {
+            for (String value : values) {
+                System.out.print(value + " ");
+            }
+            System.out.println();
+        }
+    }
+}
