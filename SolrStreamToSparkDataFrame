@@ -1,0 +1,40 @@
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
+import org.apache.solr.client.solrj.io.stream.CloudSolrStream;
+import org.apache.solr.client.solrj.io.stream.StreamContext;
+
+public class SolrStreamToSparkDataFrame {
+    public static void main(String[] args) {
+        // Initialize Spark session
+        SparkSession spark = SparkSession.builder()
+            .appName("SolrStreamToSparkDataFrame")
+            .master("local[*]")
+            .getOrCreate();
+
+        // Solr streaming URL
+        String solrStreamUrl = "http://localhost:8983/solr/your_collection_name/stream";
+
+        try {
+            // Create a Solr streaming context
+            StreamContext streamContext = new StreamContext();
+            CloudSolrStream solrStream = new CloudSolrStream(solrStreamUrl, streamContext);
+
+            // Read Solr stream into a Spark DataFrame
+            Dataset<Row> solrDataFrame = spark.read()
+                .format("solr")
+                .option("zkhost", "localhost:2181")  // ZooKeeper host and port
+                .load(solrStream);
+
+            // Show the DataFrame
+            solrDataFrame.show();
+
+            // Perform Spark DataFrame operations as needed
+
+            // Stop the Spark session
+            spark.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
