@@ -1,0 +1,66 @@
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
+
+import java.io.IOException;
+import java.util.List;
+
+public class SolrToSparkDataFrameExample {
+    public static void main(String[] args) {
+        // Initialize Spark session
+        SparkSession spark = SparkSession.builder()
+            .appName("SolrToSparkDataFrame")
+            .master("local[*]")
+            .getOrCreate();
+
+        // Solr server URL
+        String solrUrl = "http://localhost:8983/solr/your_collection_name";
+
+        // Create a SolrClient
+        SolrClient solr = new HttpSolrClient.Builder(solrUrl).build();
+
+        // Create a Solr query
+        SolrQuery query = new SolrQuery("*:*");
+
+        try {
+            // Execute the query and get the response
+            QueryResponse response = solr.query(query);
+
+            // Extract Solr documents
+            List<SolrDocument> solrDocs = response.getResults();
+
+            // Create a list of Rows from Solr documents
+            List<Row> rows = solrDocs.stream().map(solrDoc -> {
+                // Access Solr document fields and create Row objects
+                String field1 = (String) solrDoc.get("field1");
+                int field2 = (int) solrDoc.get("field2");
+
+                return RowFactory.create(field1, field2);
+            }).collect(Collectors.toList());
+
+            // Define a schema for the DataFrame
+            StructType schema = new StructType()
+                .add("field1", DataTypes.StringType)
+                .add("field2", DataTypes.IntegerType);
+
+            // Create a DataFrame from the list of Rows and schema
+            Dataset<Row> solrDataFrame = spark.createDataFrame(rows, schema);
+
+            // Show the DataFrame
+            solrDataFrame.show();
+
+            // Perform Spark DataFrame operations as needed
+
+            // Stop the Spark session
+            spark.stop();
+        } catch (SolrServerException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
